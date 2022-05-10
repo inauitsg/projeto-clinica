@@ -302,4 +302,71 @@ app.put('/medicos/:id', (req, res) => {
     })
 })
 
+/**...........ESPECIALIDADES.............. */
+
+/** criar tabela para não precisar do pgAdmin se necessário */
+app.get('/criarespecialidades', (req,res) => {
+    pool.connect((err, client) => {
+        if(err){
+            return res.status(401).send('Conexão não autorizada')
+        }
+        var sql = 'create table especialidades (id serial primary key, especialidade varchar(30))'
+        client.query( sql,
+        (error, result) => {
+            if(error){
+                return res.status(401).send('Operação não autorizada')
+            }
+            res.status(200).send(result.rows)
+
+        })
+        
+    })
+    
+})
+/** postar especialidades */
+app.post('/especialidades',(req,res) => {
+    pool.connect((err,client) => {
+        if(err){
+            return res.status(401).send('conexão nao autorizada')
+        }
+        client.query('select * from especialidades where id= $1', [req.body.id],(error, result) =>{
+            if (error){
+                return res.status(401).send('operação não autorizada')
+            }
+            if(result.rowCount > 0){
+                return res.status(200).send('registro já existe')
+            }
+            
+        var sql = 'insert into especialidades(especialidade) values($1)'
+        client.query(sql,[req.body.especialidade],(error,result) => {
+            if(error){
+                return res.status(403).send('Operação não permitida')
+            }
+            res.status(201).send({
+                mensagem: 'criado com sucesso',
+                status: 201
+            })
+        })
+        })
+        
+    })
+
+} )
+
+ /** mostrar tabela */
+app.get('/especialidades', (req,res) => {
+    pool.connect((err,client)=>{
+        if(err){
+            res.status(401).send("Conexão não autorizada")
+        }
+        client.query('select * from especialidades', (error, result) =>{
+            if(error){
+              return  res.status(401).send('operação não autorizada')
+            }
+            res.status(200).send(result.rows)
+        })
+    })
+})
+
+
 app.listen(process.env.PORT || 8081, () => console.log(`http://localhost:8081`))
